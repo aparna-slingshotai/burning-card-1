@@ -189,13 +189,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float ignitionFlash = exp(-ignitionDist * 0.025)
                         * smoothstep(0.7, 0.0, time)
                         * smoothstep(-0.01, 0.15, time);
-    vec3 ignitionColor = ignitionFlash * vec3(1.0, 0.7, 0.2);
+    vec3 ignitionColor = ignitionFlash * vec3(1.0, 0.3, 0.7);
 
     // Inside rectangle: dark card interior with animated inner glow
     if (signedDist <= 0.0) {
         float innerGlow = 1.0 - smoothstep(0.0, 50.0, -signedDist);
         vec3 cardColor = vec3(0.02, 0.01, 0.02);
-        vec3 glowColor = vec3(0.3, 0.06, 0.0);
+        vec3 glowColor = vec3(0.3, 0.02, 0.18);
         vec3 interior = mix(cardColor, glowColor, innerGlow * innerGlow * fireMask);
         fragColor = vec4(interior + ignitionColor, 1.0);
         return;
@@ -245,7 +245,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     float f = distClippedFalloff * pow(1.0 - flames * flames * flames, 8.0);
     float fff = f * f * f;
-    vec3 fire = 1.5 * vec3(f, fff, fff * fff);
+    vec3 fire = 1.5 * vec3(f, fff * 0.3, fff * 0.85);
     fire *= fireMask;
 
     // Smoke: visible above the card
@@ -272,7 +272,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         vec2 sparkModulus = mod(sparkCoord + sparkOffset, sparkGridSize) - 0.5 * vec2(sparkGridSize);
         float sparkLength = length(sparkModulus);
         float sparksGray = max(0.0, 1.0 - sparkLength / (sparkSize * sparkGridSize));
-        sparks = sparkLife * sparksGray * vec3(1.0, 0.3, 0.0);
+        sparks = sparkLife * sparksGray * vec3(1.0, 0.2, 0.6);
     }
     sparks *= smoothstep(clip, 0.0, signedDist) * fireMask;
 
