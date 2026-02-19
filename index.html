@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplex Noise Fire Shader</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        body { overflow: hidden; background: #000; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body>
+    <canvas id="glCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('glCanvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+        if (!gl) {
+            document.body.innerHTML = '<p style="color:white;padding:2em;">WebGL is not supported in this browser.</p>';
+            throw new Error('WebGL not supported');
+        }
+
+        // --- Shader sources loaded inline ---
+        const vertexShaderSource = `
+attribute vec2 a_position;
+void main() {
+    gl_Position = vec4(a_position, 0.0, 1.0);
+}
+`;
+
+        let fragmentShaderSource = null;
+
+        function compileShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        function createProgram(gl, vertSrc, fragSrc) {
+            const vertShader = compileShader(gl, gl.VERTEX_SHADER, vertSrc);
+            const fragShader = compileShader(gl, gl.FRAGMENT_SHADER, fragSrc);
+            if (!vertShader || !fragShader) return null;
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertShader);
+            gl.attachShader(program, fragShader);
+            gl.linkProgram(program);
+
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Program link error:', gl.getProgramInfoLog(program));
+                gl.deleteProgram(program);
+                return null;
+            }
+            return program;
+        }
+
+        function resize() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+
+        async function init() {
+            // Fetch fragment shader from file
+            const response = await fetch('shader.frag');
+            fragmentShaderSource = await response.text();
+
+            const program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
+            if (!program) {
+                document.body.innerHTML = '<p style="color:white;padding:2em;">Shader compilation failed. Check the console for details.</p>';
+                return;
+            }
+
+            gl.useProgram(program);
+
+            // Full-screen quad (two triangles)
+            const vertices = new Float32Array([
+                -1, -1,
+                 1, -1,
+                -1,  1,
+                -1,  1,
+                 1, -1,
+                 1,  1,
+            ]);
+
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+            const aPosition = gl.getAttribLocation(program, 'a_position');
+            gl.enableVertexAttribArray(aPosition);
+            gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+
+            // Uniforms
+            const uTime = gl.getUniformLocation(program, 'iTime');
+            const uResolution = gl.getUniformLocation(program, 'iResolution');
+            const uMouse = gl.getUniformLocation(program, 'iMouse');
+
+            // Mouse tracking
+            let mouseX = 0, mouseY = 0;
+            let mouseDown = false;
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (mouseDown) {
+                    const rect = canvas.getBoundingClientRect();
+                    const dpr = window.devicePixelRatio || 1;
+                    mouseX = (e.clientX - rect.left) * dpr;
+                    mouseY = (rect.height - (e.clientY - rect.top)) * dpr; // flip Y
+                }
+            });
+            canvas.addEventListener('mousedown', (e) => {
+                mouseDown = true;
+                const rect = canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                mouseX = (e.clientX - rect.left) * dpr;
+                mouseY = (rect.height - (e.clientY - rect.top)) * dpr;
+            });
+            canvas.addEventListener('mouseup', () => { mouseDown = false; });
+
+            // Resize handling
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Render loop
+            const startTime = performance.now();
+
+            function render() {
+                const elapsed = (performance.now() - startTime) / 1000.0;
+
+                gl.uniform1f(uTime, elapsed);
+                gl.uniform2f(uResolution, canvas.width, canvas.height);
+                gl.uniform4f(uMouse, mouseX, mouseY, mouseDown ? 1.0 : 0.0, 0.0);
+
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            }
+
+            render();
+        }
+
+        init();
+    </script>
+</body>
+</html>
