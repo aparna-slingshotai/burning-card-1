@@ -189,13 +189,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float ignitionFlash = exp(-ignitionDist * 0.025)
                         * smoothstep(0.7, 0.0, time)
                         * smoothstep(-0.01, 0.15, time);
-    vec3 ignitionColor = ignitionFlash * vec3(1.0, 0.3, 0.7);
+    vec3 ignitionColor = ignitionFlash * vec3(1.0, 0.65, 0.89);
 
     // Inside rectangle: dark card interior with animated inner glow
     if (signedDist <= 0.0) {
         float innerGlow = 1.0 - smoothstep(0.0, 50.0, -signedDist);
         vec3 cardColor = vec3(0.02, 0.01, 0.02);
-        vec3 glowColor = vec3(0.3, 0.02, 0.18);
+        vec3 glowColor = vec3(0.30, 0.14, 0.25);
         vec3 interior = mix(cardColor, glowColor, innerGlow * innerGlow * fireMask);
         fragColor = vec4(interior + ignitionColor, 1.0);
         return;
@@ -244,14 +244,16 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float flames = pow(distClipped, 0.3 * xfuel) * pow(noise, 0.3 * xfuel);
 
     float f = distClippedFalloff * pow(1.0 - flames * flames * flames, 8.0);
-    float fff = f * f * f;
-    vec3 fire = 1.5 * vec3(f, fff * 0.3, fff * 0.85);
+    // #A66C94 pink fire: hot core → white-pink, mid → target pink, cool → dark pink
+    vec3 pinkBase = vec3(0.651, 0.424, 0.580);
+    vec3 fire = 1.5 * f * mix(pinkBase, vec3(1.0, 0.85, 0.97), f * f);
     fire *= fireMask;
 
     // Smoke: visible above the card
     float smokeUp = max(0.0, dot(outDir, vec2(0.0, 1.0)));
     float smokeNoise = 0.5 + snoise(0.4 * position + timing * vec3(1.0, 1.0, 0.2)) / 2.0;
-    vec3 smoke = vec3(0.3 * pow(xfuel, 3.0) * smokeUp * distClippedn * (smokeNoise + 0.4 * (1.0 - noise)));
+    float smokeVal = 0.3 * pow(xfuel, 3.0) * smokeUp * distClippedn * (smokeNoise + 0.4 * (1.0 - noise));
+    vec3 smoke = smokeVal * vec3(0.9, 0.6, 0.8);
     smoke *= fireMask;
 
     // Sparks
@@ -272,7 +274,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         vec2 sparkModulus = mod(sparkCoord + sparkOffset, sparkGridSize) - 0.5 * vec2(sparkGridSize);
         float sparkLength = length(sparkModulus);
         float sparksGray = max(0.0, 1.0 - sparkLength / (sparkSize * sparkGridSize));
-        sparks = sparkLife * sparksGray * vec3(1.0, 0.2, 0.6);
+        sparks = sparkLife * sparksGray * vec3(0.85, 0.50, 0.72);
     }
     sparks *= smoothstep(clip, 0.0, signedDist) * fireMask;
 

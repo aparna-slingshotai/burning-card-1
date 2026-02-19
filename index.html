@@ -4,14 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simplex Noise Fire Shader</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: #000; }
         canvas { display: block; width: 100vw; height: 100vh; }
+
+        #cardOverlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: calc(min(100vw, 100vh) * 0.56);
+            height: calc(min(100vw, 100vh) * 0.76);
+            border-radius: 12px;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 8%;
+            overflow: hidden;
+        }
+
+        #cardOverlay h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 700;
+            font-size: clamp(20px, 4.2vmin, 40px);
+            line-height: 1.25;
+            color: #E8DCD5;
+            margin-bottom: 0.8em;
+        }
+
+        #cardOverlay .body-text {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+            font-size: clamp(12px, 2vmin, 18px);
+            line-height: 1.65;
+            color: #B8AFA8;
+            margin-bottom: 2em;
+        }
+
+        .columns {
+            display: flex;
+            gap: 2em;
+        }
+
+        .column {
+            flex: 1;
+        }
+
+        .column h3 {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+            font-size: clamp(10px, 1.5vmin, 14px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #A66C94;
+            margin-bottom: 0.8em;
+        }
+
+        .column p {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+            font-size: clamp(12px, 1.8vmin, 16px);
+            line-height: 1.55;
+            color: #D5CCC5;
+            margin-bottom: 0.5em;
+        }
     </style>
 </head>
 <body>
     <canvas id="glCanvas"></canvas>
+
+    <div id="cardOverlay">
+        <h1>Downplaying what you&#x2019;ve done doesn&#x2019;t make you humble.</h1>
+        <p class="body-text">You called your promotion &#x201C;lucky.&#x201D; Before that it was &#x201C;right place right time.&#x201D; The person who narrates themselves out of their own story doesn&#x2019;t get seen &mdash; they get overlooked.</p>
+        <div class="columns">
+            <div class="column">
+                <h3>Embrace</h3>
+                <p>Saying &#x201C;I earned that&#x201D;</p>
+                <p>Receive, don&#x2019;t deflect</p>
+            </div>
+            <div class="column">
+                <h3>Release</h3>
+                <p>Crediting luck</p>
+                <p>Dismissing praise</p>
+            </div>
+        </div>
+    </div>
 
     <script>
         const canvas = document.getElementById('glCanvas');
