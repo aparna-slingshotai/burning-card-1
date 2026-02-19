@@ -155,17 +155,54 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Signed distance to rounded rectangle border
     float signedDist = roundedRectSDF(p, rectHalf, cornerRadius);
 
-    // Inside rectangle: dark card interior with warm inner glow at edges
+    // --- Nearest point on rectangle border (for all pixels) ---
+    vec2 nearBorder;
+    if (signedDist > 0.0) {
+        nearBorder = clamp(p, -rectHalf, rectHalf);
+    } else {
+        vec2 distToEdge = rectHalf - abs(p);
+        if (distToEdge.x < distToEdge.y) {
+            nearBorder = vec2((p.x >= 0.0 ? rectHalf.x : -rectHalf.x), p.y);
+        } else {
+            nearBorder = vec2(p.x, (p.y >= 0.0 ? rectHalf.y : -rectHalf.y));
+        }
+    }
+
+    // --- Burn ignition animation ---
+    // Burn order: 0 at bottom-center, ~1 at top-corners
+    // Fire spreads from bottom-center upward along both sides
+    float burnOrder = 0.8 * (nearBorder.y + rectHalf.y) / (2.0 * rectHalf.y)
+                    + 0.2 * abs(nearBorder.x) / rectHalf.x;
+
+    float burnTime = max(time - 0.15, 0.0);
+    float ignitionDuration = 2.5;
+    float burnProgress = clamp(burnTime / ignitionDuration, 0.0, 1.0);
+    burnProgress = burnProgress * burnProgress * (3.0 - 2.0 * burnProgress);
+
+    // Noisy burn front for organic spread
+    float burnNoise = 0.06 * snoise(vec3(nearBorder * 0.03, 0.0));
+    float fireMask = smoothstep(burnOrder - 0.12 + burnNoise, burnOrder + 0.03 + burnNoise, burnProgress);
+
+    // Ignition spark at bottom-center of card
+    vec2 ignitionPoint = vec2(rectCenter.x, rectCenter.y - rectHalf.y);
+    float ignitionDist = length(fragCoord - ignitionPoint);
+    float ignitionFlash = exp(-ignitionDist * 0.025)
+                        * smoothstep(0.7, 0.0, time)
+                        * smoothstep(-0.01, 0.15, time);
+    vec3 ignitionColor = ignitionFlash * vec3(1.0, 0.7, 0.2);
+
+    // Inside rectangle: dark card interior with animated inner glow
     if (signedDist <= 0.0) {
         float innerGlow = 1.0 - smoothstep(0.0, 50.0, -signedDist);
         vec3 cardColor = vec3(0.02, 0.01, 0.02);
         vec3 glowColor = vec3(0.3, 0.06, 0.0);
-        fragColor = vec4(mix(cardColor, glowColor, innerGlow * innerGlow), 1.0);
+        vec3 interior = mix(cardColor, glowColor, innerGlow * innerGlow * fireMask);
+        fragColor = vec4(interior + ignitionColor, 1.0);
         return;
     }
 
-    // Nearest point on rectangle and outward direction
-    vec2 nearest = clamp(p, -rectHalf, rectHalf);
+    // --- Exterior fire effect ---
+    vec2 nearest = nearBorder;
     vec2 diff = p - nearest;
     float diffLen = length(diff);
     vec2 outDir = diffLen > 0.001 ? diff / diffLen : vec2(0.0, 1.0);
@@ -209,11 +246,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float f = distClippedFalloff * pow(1.0 - flames * flames * flames, 8.0);
     float fff = f * f * f;
     vec3 fire = 1.5 * vec3(f, fff, fff * fff);
+    fire *= fireMask;
 
     // Smoke: visible above the card
     float smokeUp = max(0.0, dot(outDir, vec2(0.0, 1.0)));
     float smokeNoise = 0.5 + snoise(0.4 * position + timing * vec3(1.0, 1.0, 0.2)) / 2.0;
     vec3 smoke = vec3(0.3 * pow(xfuel, 3.0) * smokeUp * distClippedn * (smokeNoise + 0.4 * (1.0 - noise)));
+    smoke *= fireMask;
 
     // Sparks
     float sparkGridSize = 30.0;
@@ -235,9 +274,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         float sparksGray = max(0.0, 1.0 - sparkLength / (sparkSize * sparkGridSize));
         sparks = sparkLife * sparksGray * vec3(1.0, 0.3, 0.0);
     }
-    sparks *= smoothstep(clip, 0.0, signedDist);
+    sparks *= smoothstep(clip, 0.0, signedDist) * fireMask;
 
-    fragColor = vec4(max(fire, sparks) + smoke, 1.0);
+    fragColor = vec4(max(fire, sparks) + smoke + ignitionColor, 1.0);
 }
 
 void main() {
