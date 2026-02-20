@@ -1,18 +1,8 @@
-import { useNavigate } from 'react-router-dom'
 import './DigDeeperPage.css'
 
 export default function DigDeeperPage() {
-  const navigate = useNavigate()
-
   return (
     <div className="dig-deeper-page">
-      <button
-        type="button"
-        className="dig-deeper-page__back"
-        onClick={() => navigate('/')}
-      >
-        &larr; Back
-      </button>
       <div className="dig-deeper-page__content">
         <h1 className="dig-deeper-page__heading">
           Owning your story isn't arrogance — it's accuracy.

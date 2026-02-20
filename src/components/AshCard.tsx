@@ -2,7 +2,6 @@
  * Ash card — "Downplaying what you've done doesn't make you humble."
  * Implemented from Figma: Ash 0.5 (node 4909-8530)
  */
-import { useNavigate } from 'react-router-dom'
 import './AshCard.css'
 
 const EMBRACE_ITEMS = [
@@ -16,8 +15,6 @@ const RELEASE_ITEMS = [
 ]
 
 export default function AshCard() {
-  const navigate = useNavigate()
-
   return (
     <article className="ash-card">
       <h1 className="ash-card__heading">
@@ -45,9 +42,9 @@ export default function AshCard() {
         </section>
       </div>
       <div className="ash-card__cta-wrap">
-        <button type="button" className="ash-card__cta" onClick={() => navigate('/dig-deeper')}>
+        <a href="/dig-deeper" target="_blank" rel="noopener noreferrer" className="ash-card__cta">
           Dig deeper
-        </button>
+        </a>
       </div>
     </article>
   )
