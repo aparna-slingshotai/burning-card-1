@@ -41,9 +41,11 @@ export default function AshCard() {
           </ul>
         </section>
       </div>
-      <button type="button" className="ash-card__cta">
-        Dig deeper
-      </button>
+      <div className="ash-card__cta-wrap">
+        <button type="button" className="ash-card__cta">
+          Dig deeper
+        </button>
+      </div>
     </article>
   )
 }

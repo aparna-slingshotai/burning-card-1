@@ -1,4 +1,88 @@
+/* Theme toggle — top right corner, above all other UI */
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.theme-toggle__track {
+  display: block;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--toggle-track, #3d3d3d);
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.theme-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--toggle-thumb, #e0e0e0);
+  transition: transform 0.25s ease;
+}
+
+[data-theme='light'] .theme-toggle__track {
+  background: var(--toggle-track-light, #a2a09a);
+}
+
+[data-theme='light'] .theme-toggle__thumb {
+  transform: translateX(20px);
+  background: var(--toggle-thumb-light, #ebe7de);
+}
+
 .app {
+  position: relative;
+  z-index: 12;
+  width: 100%;
+  min-height: 100vh;
+  padding-bottom: 100px; /* card final bottom = 100px from viewport */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.card-slide-wrapper {
   width: 100%;
   max-width: 420px;
+  padding: 0 1.5rem 1.5rem;
+  perspective: 1200px;
+}
+
+/* Triangle above rectangle: base = rectangle width, bottom meets rectangle top, beneath card */
+.bottom-triangle {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--bottom-box-inset) + var(--bottom-box-height));
+  width: min(calc(100% - 48px), 468px);
+  height: 164px;
+  background: var(--surface-elevated);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+  z-index: 11;
+}
+
+/* Fixed rectangle: half card height + 20px, 24px from bottom; same width as card + 24px L/R; rounded bottom corners */
+.bottom-box {
+  position: fixed;
+  bottom: var(--bottom-box-inset);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 48px), 468px);
+  height: var(--bottom-box-height);
+  background: var(--surface-elevated);
+  z-index: 13;
+  border-top: 1px solid var(--surface-elevated-border);
+  border-radius: 0 0 20px 20px;
 }

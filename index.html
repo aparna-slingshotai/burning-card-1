@@ -10,21 +10,45 @@
     <style>
       * { box-sizing: border-box; }
       body { margin: 0; min-height: 100vh; width: 100%; background: #1e1e1e; color: #b0b0b0; font-family: 'Inter', system-ui, sans-serif; }
-      #root { min-height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; }
-      .app { width: 100%; max-width: 420px; }
-      .ash-card { background: #2d2d2d; border-radius: 24px; padding: 28px 24px 0; box-shadow: 0 4px 24px rgba(0,0,0,0.25); }
-      .ash-card__heading { margin: 0 0 16px; font-family: 'Source Serif 4', Georgia, serif; font-size: 1.5rem; font-weight: 700; line-height: 1.35; color: #d8d8d8; letter-spacing: -0.01em; }
+      #root { min-height: 100vh; width: 100%; position: relative; }
+      .app { position: relative; z-index: 12; width: 100%; min-height: 100vh; padding-bottom: 100px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+      .card-slide-wrapper { width: 100%; max-width: 420px; padding: 0 1.5rem 1.5rem; perspective: 1200px; }
+      .bottom-triangle { position: fixed; left: 50%; transform: translateX(-50%); bottom: 244px; width: min(calc(100% - 48px), 468px); height: 164px; background: #252525; clip-path: polygon(0 100%, 50% 0, 100% 100%); z-index: 11; }
+      .bottom-box { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); width: min(calc(100% - 48px), 468px); height: 220px; background: #252525; z-index: 13; border-top: 1px solid rgba(255,255,255,0.06); border-radius: 0 0 20px 20px; }
+      @keyframes ash-card-enter {
+        from { opacity: 1; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(calc(64px - 50%)); }
+      }
+      .ash-card { background: #2d2d2d; border-radius: 24px; padding: 28px 24px 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.25); transform-style: preserve-3d; backface-visibility: hidden; animation: ash-card-enter 1.65s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+      .ash-card__heading { margin: 0 0 16px; font-family: 'Source Serif 4', Georgia, serif; font-size: 1.5rem; font-weight: 400; line-height: 1.35; color: #d8d8d8; letter-spacing: -0.01em; }
       .ash-card__body { margin: 0 0 24px; font-size: 0.9375rem; line-height: 1.55; color: #b0b0b0; }
       .ash-card__lists { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px; margin-bottom: 24px; }
-      .ash-card__label { margin: 0 0 8px; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #9c6fe6; }
+      .ash-card__label { margin: 0 0 8px; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #be93b0; }
       .ash-card__list { margin: 0; padding-left: 0; list-style: none; font-size: 0.875rem; line-height: 1.5; color: #b0b0b0; }
       .ash-card__list li { margin-bottom: 6px; }
-      .ash-card__cta { display: block; width: 100%; padding: 14px 20px; border: none; border-radius: 0 0 24px 24px; margin: 0 -24px 0 -24px; background: #5c3c2b; color: #f8f8f8; font-family: inherit; font-size: 0.9375rem; font-weight: 500; cursor: pointer; }
+      .ash-card__cta-wrap { width: calc(100% + 48px); margin: 0 -24px 0 -24px; display: flex; justify-content: center; align-items: center; }
+      @keyframes dig-deeper-in { from { opacity: 0; } to { opacity: 1; } }
+      .ash-card__cta { display: block; width: 100%; padding: 14px 20px; border: none; border-radius: 0 0 24px 24px; background: transparent; color: #f8f8f8; font-family: inherit; font-size: 0.9375rem; font-weight: 500; cursor: pointer; text-align: center; animation: dig-deeper-in 0.6s ease-out 1s forwards; opacity: 0; }
+      .theme-toggle { position: fixed; top: 16px; right: 16px; z-index: 9999; padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 999px; }
+      .theme-toggle__track { display: block; width: 44px; height: 24px; border-radius: 999px; background: #3d3d3d; position: relative; transition: background 0.2s ease; }
+      .theme-toggle__thumb { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #e0e0e0; transition: transform 0.25s ease; }
+      [data-theme='light'] .theme-toggle__track { background: #a2a09a; }
+      [data-theme='light'] .theme-toggle__thumb { transform: translateX(20px); background: #ebe7de; }
+      [data-theme='light'] body { background: #dddad1; }
+      [data-theme='light'] .ash-card { background: #ebe7de; }
+      [data-theme='light'] .ash-card__heading { color: #1a1918; }
+      [data-theme='light'] .ash-card__body, [data-theme='light'] .ash-card__list { color: #464543; }
+      [data-theme='light'] .ash-card__cta { color: #272725; }
+      [data-theme='light'] .bottom-triangle, [data-theme='light'] .bottom-box { background: #a2a09a; border-top-color: rgba(0,0,0,0.08); }
     </style>
   </head>
   <body>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch theme" title="Toggle light/dark">
+      <span class="theme-toggle__track"><span class="theme-toggle__thumb"></span></span>
+    </button>
     <div id="root">
       <main class="app">
+        <div class="card-slide-wrapper">
         <article class="ash-card">
           <h1 class="ash-card__heading">Downplaying what you've done doesn't make you humble.</h1>
           <p class="ash-card__body">You called your promotion "lucky." Before that it was "right place right time." The person who narrates themselves out of their own story doesn't get seen — they get overlooked.</p>
@@ -44,10 +68,28 @@
               </ul>
             </section>
           </div>
-          <button type="button" class="ash-card__cta">Dig deeper</button>
+          <div class="ash-card__cta-wrap"><button type="button" class="ash-card__cta">Dig deeper</button></div>
         </article>
+        </div>
       </main>
+      <div class="bottom-triangle" aria-hidden></div>
+      <div class="bottom-box" aria-hidden></div>
     </div>
+    <script>
+      (function() {
+        var KEY = 'ash-theme';
+        var btn = document.getElementById('theme-toggle');
+        function apply(t) {
+          document.documentElement.setAttribute('data-theme', t || 'dark');
+          try { if (t) localStorage.setItem(KEY, t); else localStorage.removeItem(KEY); } catch (_) {}
+        }
+        try { var s = localStorage.getItem(KEY); if (s === 'light') apply('light'); } catch (_) {}
+        if (btn) btn.addEventListener('click', function() {
+          var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+          apply(next);
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

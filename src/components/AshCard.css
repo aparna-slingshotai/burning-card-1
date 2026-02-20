@@ -1,17 +1,32 @@
+/* Reversed: start 40px lower, then move down to card center at rectangle center. Runs once, stays down. */
+@keyframes ash-card-enter {
+  from {
+    opacity: 1;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(calc(40px + var(--bottom-box-height) / 2 - 100px - 50%));
+  }
+}
+
 /* Card container — rounded, dark gray, generous padding */
 .ash-card {
   background: var(--card-bg);
   border-radius: 24px;
-  padding: 28px 24px 0;
+  padding: 28px 24px 24px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  animation: ash-card-enter 1.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* Main heading — serif, bold, light gray */
+/* Main heading — serif, regular weight, light gray */
 .ash-card__heading {
   margin: 0 0 16px;
   font-family: 'Source Serif 4', Georgia, serif;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.35;
   color: var(--text-heading);
   letter-spacing: -0.01em;
@@ -37,14 +52,14 @@
   margin: 0;
 }
 
-/* EMBRACE / RELEASE labels — uppercase, accent purple */
+/* EMBRACE / RELEASE labels — uppercase, overline color */
 .ash-card__label {
   margin: 0 0 8px;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent-label);
+  color: #be93b0;
 }
 
 .ash-card__list {
@@ -64,27 +79,48 @@
   margin-bottom: 0;
 }
 
-/* Dig deeper CTA — warm brown, rounded */
+/* Wrapper: same width as card (breaks out of card padding), centers CTA */
+.ash-card__cta-wrap {
+  width: calc(100% + 48px);
+  margin: 0 -24px 0 -24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Dig deeper: appears 1s late, opacity 0 → 1 */
+@keyframes dig-deeper-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Dig deeper CTA — full width of wrapper (= card), no background, text centered */
 .ash-card__cta {
   display: block;
   width: 100%;
   padding: 14px 20px;
   border: none;
   border-radius: 0 0 24px 24px;
-  margin: 0 -24px 0 -24px;
-  background: var(--cta-bg);
+  background: transparent;
   color: var(--cta-text);
   font-family: inherit;
   font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
-  transition: filter 0.15s ease;
+  transition: opacity 0.15s ease;
+  text-align: center;
+  animation: dig-deeper-in 0.6s ease-out 1s forwards;
+  opacity: 0;
 }
 
 .ash-card__cta:hover {
-  filter: brightness(1.08);
+  opacity: 0.9;
 }
 
 .ash-card__cta:active {
-  filter: brightness(0.95);
+  opacity: 0.8;
 }
